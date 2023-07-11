@@ -1,0 +1,46 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ad
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: &host ad.${SECRET_DOMAIN}
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: ad
+                port:
+                  number: 2022
+  tls:
+    - hosts:
+        - *host
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: ad
+  namespace: default
+subsets:
+  - addresses:
+      - ip: ${AD_IP}
+    ports:
+      - name: http
+        port: 2022
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ad
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: 2022
+  type: ClusterIP
